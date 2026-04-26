@@ -45,9 +45,10 @@ const getFraudLogs = async (req, res) => {
  */
 const getFlaggedVoters = async (req, res) => {
   try {
-    // Return all voters so the user can see their newly registered accounts
-    // but sort by fraudScore descending so risky ones stay at the top.
-    const flaggedVoters = await Voter.find({})
+    // Return only flagged or blocked voters
+    const flaggedVoters = await Voter.find({
+        $or: [{ fraudScore: { $gt: 0 } }, { isBlocked: true }]
+      })
       .select('-password -__v')
       .sort({ fraudScore: -1, createdAt: -1 });
 

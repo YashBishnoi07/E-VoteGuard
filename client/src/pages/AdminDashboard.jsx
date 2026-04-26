@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [voteResults, setVoteResults] = useState(null);
   const [flaggedVoters, setFlaggedVoters] = useState([]);
+  const [allVoters, setAllVoters] = useState([]);
   const [clusters, setClusters] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -68,15 +69,23 @@ export default function AdminDashboard() {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, voteRes, flaggedRes] = await Promise.all([
+      const results = await Promise.allSettled([
         api.get('/admin/stats'),
         api.get('/vote/results'),
         api.get('/fraud/flagged'),
+        api.get('/admin/voters')
       ]);
 
-      setStats(statsRes.data);
-      setVoteResults(voteRes.data);
-      setFlaggedVoters(flaggedRes.data.flaggedVoters || []);
+      if (results[0].status === 'fulfilled') setStats(results[0].value.data);
+      if (results[1].status === 'fulfilled') setVoteResults(results[1].value.data);
+      if (results[2].status === 'fulfilled') setFlaggedVoters(results[2].value.data.flaggedVoters || []);
+      if (results[3].status === 'fulfilled') setAllVoters(results[3].value.data.voters || []);
+      
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        console.error("Dashboard Sync Errors:", failed.map(f => f.reason));
+        toast.error('Sync Warning: Some electoral metrics failed to load');
+      }
     } catch (err) {
       toast.error('Sync Error: Failed to fetch live electoral metrics');
     } finally {
@@ -118,6 +127,7 @@ export default function AdminDashboard() {
     { id: 'overview', label: 'Electoral Overview', icon: Globe },
     { id: 'spatial', label: 'Regional Analysis', icon: MapIcon },
     { id: 'ledger', label: 'Vote Ledger', icon: Database },
+    { id: 'all-voters', label: 'Voter Registry', icon: Users },
     { id: 'flagged', label: 'Flagged Assets', icon: AlertTriangle },
     { id: 'clusters', label: 'Graph Clusters', icon: GitBranch },
     { id: 'algorithms', label: 'Algorithm Logic', icon: Cpu }
@@ -276,6 +286,15 @@ export default function AdminDashboard() {
             {activeTab === 'ledger' && (
               <motion.div key="ledger" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-[600px]">
                 <VoteLedger socket={socket} />
+              </motion.div>
+            )}
+
+            {activeTab === 'all-voters' && (
+              <motion.div key="all-voters" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="ev-card p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-black text-white">Voter Registry</h3>
+                </div>
+                <FraudTable voters={allVoters} onRefresh={fetchAll} />
               </motion.div>
             )}
 

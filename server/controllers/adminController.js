@@ -140,4 +140,29 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { getVoterIDScan, getStateStats, getAuditLogs, getStats };
+const deleteVoter = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const voter = await Voter.findById(id);
+    if (!voter) {
+      return res.status(404).json({ message: 'Voter not found' });
+    }
+    await Voter.findByIdAndDelete(id);
+    res.json({ message: 'Voter deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete voter", error: err.message });
+  }
+};
+
+const getAllVoters = async (req, res) => {
+  try {
+    const voters = await Voter.find({})
+      .select('-password -__v')
+      .sort({ createdAt: -1 });
+    res.json({ voters, total: voters.length });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch voters", error: err.message });
+  }
+};
+
+module.exports = { getVoterIDScan, getStateStats, getAuditLogs, getStats, deleteVoter, getAllVoters };
