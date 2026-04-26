@@ -299,9 +299,20 @@ export default function AdminDashboard() {
                     <div className="lg:col-span-2 ev-card p-8 bg-ev-navy-800">
                       <h3 className="text-xl font-bold text-white mb-6">Fraud Ring Topological View</h3>
                       <div className="h-[400px] flex items-center justify-center border border-ev-surface-border rounded-xl bg-ev-navy/50 relative overflow-hidden">
-                        <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 opacity-10">
-                          {Array.from({ length: 100 }).map((_, i) => <div key={i} className="border border-ev-gold/20" />)}
-                        </div>
+                        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 400">
+                          {clusters.edges?.map((edge, i) => {
+                            const x1 = 100 + ((i * 47) % 600);
+                            const y1 = 50 + ((i * 31) % 300);
+                            const x2 = 100 + ((i * 61) % 600);
+                            const y2 = 50 + ((i * 17) % 300);
+                            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#D4AF37" strokeWidth="2" strokeOpacity="0.3" />;
+                          })}
+                          {clusters.nodes?.map((node, i) => {
+                            const cx = 100 + ((i * 47) % 600);
+                            const cy = 50 + ((i * 31) % 300);
+                            return <circle key={node.id} cx={cx} cy={cy} r={node.isFraudNode ? 8 : 4} fill={node.isFraudNode ? "#C0392B" : "#1E3A5F"} className={node.isFraudNode ? "animate-pulse" : ""} />
+                          })}
+                        </svg>
                         <GitBranch size={120} className="text-ev-gold/10 animate-pulse" />
                         <div className="absolute bottom-4 left-4 text-[10px] text-ev-gold font-bold uppercase tracking-widest">BFS FRONTIER VISUALIZATION READY</div>
                       </div>

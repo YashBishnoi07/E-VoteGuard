@@ -41,19 +41,19 @@ const getFraudLogs = async (req, res) => {
 
 /**
  * GET /api/fraud/flagged
- * List of flagged voters (admin only)
+ * List of flagged voters and all registered assets (admin only)
  */
 const getFlaggedVoters = async (req, res) => {
   try {
-    const flaggedVoters = await Voter.find({
-      $or: [{ riskLevel: { $in: ['MEDIUM', 'HIGH'] } }, { isBlocked: true }, { fraudScore: { $gt: 30 } }]
-    })
+    // Return all voters so the user can see their newly registered accounts
+    // but sort by fraudScore descending so risky ones stay at the top.
+    const flaggedVoters = await Voter.find({})
       .select('-password -__v')
-      .sort({ fraudScore: -1 });
+      .sort({ fraudScore: -1, createdAt: -1 });
 
     res.json({ flaggedVoters, total: flaggedVoters.length });
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching flagged voters.', error: err.message });
+    res.status(500).json({ message: 'Error fetching voters.', error: err.message });
   }
 };
 

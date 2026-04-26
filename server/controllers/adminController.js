@@ -55,40 +55,33 @@ const getVoterIDScan = async (req, res) => {
 
 const getStateStats = async (req, res) => {
   try {
-    const voters = await Voter.aggregate([
-      { $group: { _id: "$state", totalVoters: { $sum: 1 } } }
-    ]);
-    const votes = await Vote.aggregate([
-      { $group: { _id: "$voterState", votes: { $sum: 1 } } }
-    ]);
-    const fraud = await FraudLog.aggregate([
-      { $group: { _id: "$ipAddress", fraud: { $sum: 1 } } } // Simplified: would ideally group by state
-    ]);
-    const flagged = await Voter.aggregate([
-      { $match: { isBlocked: true } },
-      { $group: { _id: "$state", flagged: { $sum: 1 } } }
-    ]);
-
-    const stateMap = {};
-    voters.forEach(v => {
-      if (v._id) {
-        stateMap[v._id] = { state: v._id, voters: v.totalVoters, votes: 0, fraud: 0, flagged: 0 };
+    const voterStats = await Voter.aggregate([
+      {
+        $group: {
+          _id: '$state',
+          registeredCount: { $sum: 1 },
+          voteCount: { $sum: { $cond: ['$hasVoted', 1, 0] } },
+          flaggedCount: { 
+            $sum: { 
+              $cond: [
+                { $or: [{ $eq: ['$riskLevel', 'HIGH'] }, { $eq: ['$riskLevel', 'MEDIUM'] }, { $eq: ['$isBlocked', true] }] }, 
+                1, 0 
+              ] 
+            } 
+          }
+        }
       }
-    });
+    ]);
 
-    votes.forEach(v => { 
-      if (v._id && stateMap[v._id]) stateMap[v._id].votes = v.votes; 
-    });
-    
-    // For fraud, since it's grouped by IP or something else in the simplified schema, 
-    // we'll map it to the first found voter's state for this demo/exercise.
-    // In a real app, FraudLog would have a state field.
-    
-    flagged.forEach(f => { 
-      if (f._id && stateMap[f._id]) stateMap[f._id].flagged = f.flagged; 
-    });
+    const stats = voterStats.map(v => ({
+      state: v._id,
+      voters: v.registeredCount,
+      votes: v.voteCount,
+      flagged: v.flaggedCount,
+      fraud: v.flaggedCount // Mapped to flagged count for accurate geospatial representation
+    }));
 
-    res.json(Object.values(stateMap));
+    res.json(stats);
   } catch (err) {
     res.status(500).json({ message: "Stats failure", error: err.message });
   }

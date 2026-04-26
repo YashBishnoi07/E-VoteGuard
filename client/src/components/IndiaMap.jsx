@@ -17,7 +17,7 @@ export default function IndiaMap() {
   const [activeMetric, setActiveMetric] = useState("votes"); // votes | fraud | flagged
 
   useEffect(() => {
-    axios.get("/api/admin/state-stats").then(res => setStateData(res.data));
+    axios.get("/admin/state-stats").then(res => setStateData(res.data));
   }, []);
 
   const metricConfig = {

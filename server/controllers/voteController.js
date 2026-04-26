@@ -64,7 +64,16 @@ const castVote = async (req, res) => {
 
     // Notify Dashboard
     const io = req.app.get('socketio');
-    if (io) io.emit('vote:cast', { receiptHash, blockIndex, candidateName: candidate.name });
+    if (io) {
+      io.emit('vote:cast', { 
+        receiptHash, 
+        blockIndex, 
+        candidateName: candidate.name,
+        voterID: voter.voterID,
+        prevHash,
+        timestamp: ts
+      });
+    }
 
     res.status(201).json({ message: 'Vote Cast Successfully', receiptHash });
 

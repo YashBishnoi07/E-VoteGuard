@@ -9,6 +9,7 @@ const voterSchema = new mongoose.Schema({
   state: { type: String, required: true },
   password: { type: String, required: true },
   hashedFingerprint: { type: String, required: true, unique: true },
+  hardwareWebAuthnId: { type: String, default: null }, // Stores the PC/Hardware fingerprint credential ID
   photoBase64: { type: String, default: "" }, 
   faceDescriptor: { type: [Number], default: [] },
   guardianName: { type: String, default: "" },

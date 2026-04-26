@@ -24,7 +24,7 @@ export default function IDScannerPage() {
   const fetchVoters = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/admin/voter-id-scan");
+      const res = await axios.get("/admin/voter-id-scan");
       setVoters(res.data.voters);
     } catch (err) {
       console.error("Fetch failed", err);

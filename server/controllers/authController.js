@@ -24,7 +24,7 @@ function getClientIP(req) {
  */
 const register = async (req, res) => {
   try {
-    const { name, email, voterID, aadhaarID, dob, state, password, photoBase64, faceDescriptor, guardianName, gender, district, constituency } = req.body;
+    const { name, email, voterID, aadhaarID, dob, state, password, photoBase64, faceDescriptor, guardianName, gender, district, constituency, hardwareWebAuthnId } = req.body;
 
     // Input validation
     if (!name || !email || !voterID || !aadhaarID || !dob || !state || !password) {
@@ -103,6 +103,7 @@ const register = async (req, res) => {
       state,
       password: hashedPassword,
       hashedFingerprint,
+      hardwareWebAuthnId,
       photoBase64: photoBase64 || "",
       faceDescriptor: faceDescriptor || [],
       guardianName: guardianName || "",

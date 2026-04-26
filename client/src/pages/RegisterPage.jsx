@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, User, Mail, CreditCard, Calendar, MapPin, 
   Lock, Eye, EyeOff, ChevronRight, CheckCircle, Landmark,
-  Camera, ChevronLeft, UserPlus
+  Camera, ChevronLeft, UserPlus, Fingerprint
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -54,7 +54,7 @@ export default function RegisterPage() {
     name: '', email: '', voterID: '', aadhaarID: '',
     dob: '', state: '', password: '', 
     photoBase64: '', faceDescriptor: [],
-    guardianName: '', gender: '', district: '', constituency: ''
+    guardianName: '', gender: '', district: '', constituency: '', hardwareWebAuthnId: null
   });
   const [registrationResult, setRegistrationResult] = useState(null);
 
@@ -82,8 +82,32 @@ export default function RegisterPage() {
 
   const prevStep = () => setStep(s => s - 1);
 
-  const handleCapture = (img, descriptor) => {
-    setForm(prev => ({ ...prev, photoBase64: img, faceDescriptor: descriptor }));
+  const handleCapture = (photo, descriptor) => {
+    setForm({ ...form, photoBase64: photo, faceDescriptor: descriptor });
+  };
+
+  const triggerWebAuthn = async () => {
+    try {
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: new Uint8Array(32),
+          rp: { name: "VoteGuard Integrity Platform" },
+          user: {
+            id: new Uint8Array(16),
+            name: form.email || "voter@gov.in",
+            displayName: form.name || "Voter"
+          },
+          pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+          authenticatorSelection: { authenticatorAttachment: "platform" },
+          timeout: 60000,
+        }
+      });
+      setForm({ ...form, hardwareWebAuthnId: credential.id });
+      toast.success("Hardware Biometric Secured!");
+    } catch (err) {
+      toast.error("Biometric fingerprint cancelled or hardware not supported.");
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -246,6 +270,13 @@ export default function RegisterPage() {
                 </div>
                 
                 <FaceCapture onCapture={handleCapture} />
+                
+                <div className="flex flex-col items-center mt-4 mb-4">
+                   <button type="button" onClick={triggerWebAuthn} className={`px-6 py-3 flex items-center justify-center gap-2 rounded-xl border border-dashed transition-all duration-300 ${form.hardwareWebAuthnId ? 'bg-ev-green/10 border-ev-green/50 text-ev-green' : 'bg-transparent hover:bg-white/5 border-ev-surface-border text-ev-text-secondary hover:text-white hover:border-white/20'}`}>
+                      <Fingerprint size={18}/> 
+                      <span className="text-[10px] font-black uppercase tracking-widest">{form.hardwareWebAuthnId ? 'HARDWARE SECURED ✓' : 'Scan PC Hardware Fingerprint'}</span>
+                   </button>
+                </div>
                 
                 <div className="flex gap-4">
                   <button type="button" onClick={prevStep} className="ev-btn-outline flex-1 py-4 flex items-center justify-center gap-2">
