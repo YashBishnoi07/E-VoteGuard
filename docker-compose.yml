@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: evoting-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: evoting
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: evoting-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/evoting
+      JWT_SECRET: evoting_docker_jwt_secret_2024
+      SALT: evoting_docker_salt_2024
+      PORT: 5000
+      CLIENT_URL: http://localhost:5173
+      NODE_ENV: production
+    depends_on:
+      - mongodb
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: evoting-client
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:

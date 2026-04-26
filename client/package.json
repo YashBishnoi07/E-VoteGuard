@@ -1,0 +1,46 @@
+{
+  "name": "evoting-fraud-detection-client",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.9.1",
+    "axios": "^1.7.3",
+    "canvas-confetti": "^1.9.3",
+    "countup.js": "^2.10.0",
+    "d3-interpolate": "^3.0.1",
+    "d3-scale": "^4.0.2",
+    "face-api.js": "^0.22.2",
+    "framer-motion": "^11.3.19",
+    "gsap": "^3.15.0",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.383.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1",
+    "react-intersection-observer": "^10.0.3",
+    "react-router-dom": "^6.26.1",
+    "react-simple-maps": "^3.0.0",
+    "react-tooltip": "^6.0.0",
+    "react-webcam": "^7.2.0",
+    "recharts": "^2.12.7",
+    "socket.io-client": "^4.7.5",
+    "topojson-client": "^3.1.0",
+    "typed.js": "^3.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "vite": "^5.4.2"
+  }
+}
