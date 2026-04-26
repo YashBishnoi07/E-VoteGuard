@@ -120,4 +120,31 @@ const getAuditLogs = async (req, res) => {
   }
 };
 
-module.exports = { getVoterIDScan, getStateStats, getAuditLogs };
+const getStats = async (req, res) => {
+  try {
+    const totalVoters = await Voter.countDocuments({});
+    const totalVotes = await Vote.countDocuments({});
+    const fraudAttempts = await FraudLog.countDocuments({});
+    
+    const fraudDistribution = await FraudLog.aggregate([
+      { $group: { _id: '$fraudType', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    const systemIntegrity = totalVotes > 0 
+      ? Math.max(0, 100 - ((fraudAttempts / totalVotes) * 100)).toFixed(1)
+      : 100;
+
+    res.json({
+      totalVoters,
+      totalVotes,
+      fraudAttempts,
+      systemIntegrity,
+      fraudDistribution
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch stats", error: err.message });
+  }
+};
+
+module.exports = { getVoterIDScan, getStateStats, getAuditLogs, getStats };
