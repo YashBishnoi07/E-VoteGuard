@@ -57,6 +57,8 @@ export default function RegisterPage() {
     guardianName: '', gender: '', district: '', constituency: '', hardwareWebAuthnId: null
   });
   const [registrationResult, setRegistrationResult] = useState(null);
+  // Tracks suspicious behavior during registration for fraud scoring
+  const [suspicionFlags, setSuspicionFlags] = useState({ triedUnderageEntry: false, hadDuplicateAttempt: false });
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -69,6 +71,8 @@ export default function RegisterPage() {
       const birthYear = new Date(form.dob).getFullYear();
       const currentYear = new Date().getFullYear();
       if (currentYear - birthYear < 18) {
+        // Flag this attempt — user tried to register with underage DOB
+        setSuspicionFlags(prev => ({ ...prev, triedUnderageEntry: true }));
         return toast.error("Voter must be at least 18 years old.");
       }
     }
@@ -116,11 +120,16 @@ export default function RegisterPage() {
     
     setLoading(true);
     try {
-      const result = await register(form);
+      const result = await register({ ...form, ...suspicionFlags });
       setRegistrationResult(result);
       toast.success('Identity Secured! Voter ID Issued.');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed.');
+      // If the error is a duplicate ID/Aadhaar, flag it for fraud scoring on next attempt
+      const msg = err.response?.data?.message || '';
+      if (err.response?.status === 409 || msg.includes('already registered') || msg.includes('already exists')) {
+        setSuspicionFlags(prev => ({ ...prev, hadDuplicateAttempt: true }));
+      }
+      toast.error(msg || 'Registration failed.');
     } finally {
       setLoading(false);
     }

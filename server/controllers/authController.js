@@ -4,6 +4,7 @@ const Voter = require('../models/Voter');
 const AuditLog = require('../models/AuditLog');
 const { generateVoterHash } = require('../algorithms/hashingEngine');
 const { binarySearchVoter } = require('../algorithms/patternDetection');
+const { calculateRegistrationFraudScore } = require('../algorithms/greedyValidator');
 
 // Helper: generate JWT
 function generateToken(id) {
@@ -24,7 +25,7 @@ function getClientIP(req) {
  */
 const register = async (req, res) => {
   try {
-    const { name, email, voterID, aadhaarID, dob, state, password, photoBase64, faceDescriptor, guardianName, gender, district, constituency, hardwareWebAuthnId } = req.body;
+    const { name, email, voterID, aadhaarID, dob, state, password, photoBase64, faceDescriptor, guardianName, gender, district, constituency, hardwareWebAuthnId, triedUnderageEntry, hadDuplicateAttempt } = req.body;
 
     // Input validation
     if (!name || !email || !voterID || !aadhaarID || !dob || !state || !password) {
@@ -94,6 +95,14 @@ const register = async (req, res) => {
 
     const clientIP = getClientIP(req);
 
+    // Calculate registration-time fraud score using greedy scoring
+    const regFraud = calculateRegistrationFraudScore({
+      photoBase64,
+      faceDescriptor,
+      triedUnderageEntry: !!triedUnderageEntry,
+      hadDuplicateAttempt: !!hadDuplicateAttempt
+    });
+
     const voter = new Voter({
       name,
       email,
@@ -111,6 +120,8 @@ const register = async (req, res) => {
       district: district || "",
       constituency: constituency || "",
       role: 'voter',
+      fraudScore: regFraud.score,
+      riskLevel: regFraud.risk,
       registeredIP: clientIP,
       deviceFingerprints: []
     });

@@ -154,11 +154,59 @@ function extractVoterBehavior(req, voter, timingMs) {
   };
 }
 
+/**
+ * Registration-time fraud scoring
+ * Signals detected BEFORE or DURING voter registration.
+ * These are passive signals — not behavioral — based on what the user
+ * submitted and whether they triggered validation errors.
+ */
+const REGISTRATION_FRAUD_WEIGHTS = {
+  NO_PHOTO: 20,           // No face photo submitted
+  UNCLEAR_PHOTO: 15,      // Photo submitted but no face descriptor detected (face unclear/fake)
+  TRIED_UNDERAGE: 15,     // Entered a DOB that was under 18 before correcting
+  TRIED_DUPLICATE_ID: 20, // Attempted to use an already-registered Voter ID or Aadhaar
+};
+
+function calculateRegistrationFraudScore({ photoBase64, faceDescriptor, triedUnderageEntry, hadDuplicateAttempt }) {
+  let score = 0;
+  const triggeredSignals = [];
+
+  // Signal 1: No photo provided at all
+  if (!photoBase64 || photoBase64.length < 500) {
+    score += REGISTRATION_FRAUD_WEIGHTS.NO_PHOTO;
+    triggeredSignals.push('NO_PHOTO');
+  } else if (!faceDescriptor || faceDescriptor.length === 0) {
+    // Photo provided but no face was detected — could be a fake/unclear image
+    score += REGISTRATION_FRAUD_WEIGHTS.UNCLEAR_PHOTO;
+    triggeredSignals.push('UNCLEAR_PHOTO');
+  }
+
+  // Signal 2: User attempted to enter an underage DOB
+  if (triedUnderageEntry) {
+    score += REGISTRATION_FRAUD_WEIGHTS.TRIED_UNDERAGE;
+    triggeredSignals.push('TRIED_UNDERAGE');
+  }
+
+  // Signal 3: User attempted to use a duplicate Voter ID or Aadhaar that was already registered
+  if (hadDuplicateAttempt) {
+    score += REGISTRATION_FRAUD_WEIGHTS.TRIED_DUPLICATE_ID;
+    triggeredSignals.push('TRIED_DUPLICATE_ID');
+  }
+
+  score = Math.min(score, 100);
+  const risk = score >= HIGH_RISK_THRESHOLD ? 'HIGH'
+    : score >= MEDIUM_RISK_THRESHOLD ? 'MEDIUM' : 'LOW';
+
+  return { score, risk, triggeredSignals };
+}
+
 module.exports = {
   calculateFraudScore,
   quickFraudAssessment,
   extractVoterBehavior,
+  calculateRegistrationFraudScore,
   FRAUD_WEIGHTS,
+  REGISTRATION_FRAUD_WEIGHTS,
   HIGH_RISK_THRESHOLD,
   MEDIUM_RISK_THRESHOLD,
   COMPLEXITY: {
