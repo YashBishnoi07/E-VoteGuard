@@ -125,11 +125,12 @@ export default function RegisterPage() {
       toast.success('Identity Secured! Voter ID Issued.');
     } catch (err) {
       // If the error is a duplicate ID/Aadhaar, flag it for fraud scoring on next attempt
-      const msg = err.response?.data?.message || '';
+      const msg = err.response?.data?.message || err.message || 'Registration failed.';
       if (err.response?.status === 409 || msg.includes('already registered') || msg.includes('already exists')) {
         setSuspicionFlags(prev => ({ ...prev, hadDuplicateAttempt: true }));
       }
-      toast.error(msg || 'Registration failed.');
+      toast.error(msg);
+      console.error("Registration Error Detail:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-# 🗳️ VoteGuard — E-Voting Fraud Detection System
+# VoteGuard — E-Voting Fraud Detection System
 
 A full-stack electronic voting system with **5 DAA algorithms** for real-time fraud detection.
 
@@ -7,7 +7,7 @@ A full-stack electronic voting system with **5 DAA algorithms** for real-time fr
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js v18+
@@ -73,7 +73,7 @@ npm run dev
 
 ---
 
-## 🔑 Demo Credentials
+## Demo Credentials
 
 | Role | Voter ID | Password |
 |------|----------|----------|
@@ -82,7 +82,7 @@ npm run dev
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -104,7 +104,7 @@ npm run dev
 
 ---
 
-## 🧮 DAA Algorithms
+## DAA Algorithms
 
 ### 1. SHA-256 Hashing — `hashingEngine.js`
 - **Purpose**: Duplicate vote detection, identity fingerprinting
@@ -133,7 +133,7 @@ npm run dev
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 evoting-fraud-detection/
@@ -156,7 +156,7 @@ evoting-fraud-detection/
 
 ---
 
-## ⚡ Real-Time Events (Socket.IO)
+## Real-Time Events (Socket.IO)
 
 | Event | Trigger | Payload |
 |-------|---------|---------|
@@ -166,7 +166,7 @@ evoting-fraud-detection/
 
 ---
 
-## 🐳 Docker Setup
+## Docker Setup
 
 ```bash
 # Start everything with Docker
@@ -178,11 +178,11 @@ docker-compose exec server npm run seed
 
 ---
 
-## 🛡️ Security Features
+## Security Features
 
 - **JWT Authentication** — 24h token expiry
 - **bcrypt Password Hashing** — 10 salt rounds
 - **Rate Limiting** — Auth: 20/15min, Vote: 5/min
 - **SHA-256 Fingerprinting** — Unique per voter
-- **Auto-block** — Fraud score ≥ 60 triggers automatic block
+- **Auto-block** — Fraud score >= 60 triggers automatic block
 - **Audit Trail** — Every action logged immutably

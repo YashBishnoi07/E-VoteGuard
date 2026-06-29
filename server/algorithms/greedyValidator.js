@@ -171,8 +171,8 @@ function calculateRegistrationFraudScore({ photoBase64, faceDescriptor, triedUnd
   let score = 0;
   const triggeredSignals = [];
 
-  // Signal 1: No photo provided at all
-  if (!photoBase64 || photoBase64.length < 500) {
+  // Signal 1: No photo provided at all (Safety check: Ensure photoBase64 exists)
+  if (!photoBase64 || (typeof photoBase64 === 'string' && photoBase64.length < 500)) {
     score += REGISTRATION_FRAUD_WEIGHTS.NO_PHOTO;
     triggeredSignals.push('NO_PHOTO');
   } else if (!faceDescriptor || faceDescriptor.length === 0) {
